@@ -1,7 +1,17 @@
 from fastapi import FastAPI, File, UploadFile, Form
 from pydantic import BaseModel
+from contextlib import asynccontextmanager
+from app.database import create_db_and_tables
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup code: create database and tables
+    await create_db_and_tables()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 # add tag to video(s)
