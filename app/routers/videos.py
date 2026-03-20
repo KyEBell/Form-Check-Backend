@@ -8,23 +8,22 @@ from app.services.video_service import (
     get_video_by_id,
     update_video,
     delete_videos_by_ids,
+    UNSET,
 )
 
 router = APIRouter(prefix="/videos", tags=["videos"])
-
-
-class AddTagRequest(BaseModel):
-    video_ids: list[int]
-    tag_id: int
 
 
 class DeleteVideoRequest(BaseModel):
     video_ids: list[int]
 
 
-class RemoveTagsFromVideosRequest(BaseModel):
-    video_ids: list[int]
-    tag_ids: list[int]
+class UpdateVideoRequest(BaseModel):
+    title: str | None = None
+    note: str | None = None
+    tag_id: int | None = None
+    recorded_on: str | None = None
+    remove_tag: bool = False
 
 
 # GET
@@ -58,35 +57,33 @@ def upload_video(
     return video
 
 
-@router.post("/tags")
-def add_tag_to_videos(request: AddTagRequest):
-    return {"video_ids": request.video_ids, "tag_added": request.tag_id}
-
-
 # PATCH
 @router.patch("/{video_id}")
 def patch_video(
     video_id: int,
-    title: str | None = Form(None),
-    note: str | None = Form(None),
-    tag_id: int | None = Form(None),
-    recorded_on: str | None = Form(None),
+    request: UpdateVideoRequest,
     session: Session = Depends(get_session),
 ):
+    if request.remove_tag:
+        tag_id = None
+    elif request.tag_id is not None:
+        tag_id = request.tag_id
+    else:
+        tag_id = UNSET
     try:
         updated_video = update_video(
-            session, video_id, title, note, tag_id, recorded_on
+            session,
+            video_id,
+            request.title,
+            request.note,
+            tag_id,
+            request.recorded_on,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     if not updated_video:
         raise HTTPException(status_code=404, detail="Video not found")
     return updated_video
-
-
-@router.patch("/{video_id}/tags")
-def update_video_tags(video_id: int, tag_ids: list[int] = Form(...)):
-    return {"video_id": video_id, "updated_tag_ids": tag_ids}
 
 
 # DELETE
@@ -98,8 +95,3 @@ def delete_videos(request: DeleteVideoRequest, session: Session = Depends(get_se
     if not deleted:
         raise HTTPException(status_code=404, detail="One or more videos not found")
     return Response(status_code=204)
-
-
-@router.delete("/tags")
-def remove_tags_from_videos(request: RemoveTagsFromVideosRequest):
-    return {"video_ids": request.video_ids, "removed_tag_ids": request.tag_ids}

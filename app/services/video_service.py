@@ -1,7 +1,9 @@
-from sqlmodel import Session, select, delete
+from sqlmodel import Session, select
 from app.models.video import Video
 from datetime import datetime, timezone
 from app.models.tag import Tag
+
+UNSET = object()
 
 
 def get_all_videos(session: Session):
@@ -35,13 +37,9 @@ def update_video(
     video_id: int,
     title: str | None,
     note: str | None,
-    tag_id: int | None,
-    recorded_on: str | None,
+    tag_id: int | None | object = UNSET,
+    recorded_on: str | None = None,
 ):
-    if tag_id is not None:
-        tag = session.get(Tag, tag_id)
-        if not tag:
-            raise ValueError("Tag not found")
     video = session.get(Video, video_id)
     if not video:
         return None
@@ -51,7 +49,11 @@ def update_video(
         video.note = note
     if recorded_on is not None:
         video.recorded_on = recorded_on
-    if tag_id is not None:
+    if tag_id is not UNSET:
+        if tag_id is not None:
+            tag = session.get(Tag, tag_id)
+            if not tag:
+                raise ValueError("Tag not found")
         video.tag_id = tag_id
     video.updated_on = datetime.now(timezone.utc)
     session.commit()
