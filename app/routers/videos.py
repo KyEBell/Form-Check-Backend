@@ -7,7 +7,7 @@ from app.services.video_service import (
     get_all_videos,
     get_video_by_id,
     update_video,
-    delete_video,
+    delete_videos_by_ids,
 )
 
 router = APIRouter(prefix="/videos", tags=["videos"])
@@ -48,9 +48,13 @@ def upload_video(
     title: str = Form(...),
     note: str | None = Form(None),
     recorded_on: str | None = Form(None),
+    tag_id: int | None = Form(None),
     session: Session = Depends(get_session),
 ):
-    video = create_video(session, title, note, recorded_on)
+    try:
+        video = create_video(session, title, note, recorded_on, tag_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     return video
 
 
@@ -65,10 +69,16 @@ def patch_video(
     video_id: int,
     title: str | None = Form(None),
     note: str | None = Form(None),
+    tag_id: int | None = Form(None),
     recorded_on: str | None = Form(None),
     session: Session = Depends(get_session),
 ):
-    updated_video = update_video(session, video_id, title, note, recorded_on)
+    try:
+        updated_video = update_video(
+            session, video_id, title, note, tag_id, recorded_on
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     if not updated_video:
         raise HTTPException(status_code=404, detail="Video not found")
     return updated_video
@@ -82,14 +92,11 @@ def update_video_tags(video_id: int, tag_ids: list[int] = Form(...)):
 # DELETE
 @router.delete("/")
 def delete_videos(request: DeleteVideoRequest, session: Session = Depends(get_session)):
-    deleted_video_ids = []
-    for video_id in request.video_ids:
-        if delete_video(session, video_id):
-            deleted_video_ids.append(video_id)
-
-    if len(deleted_video_ids) == 0:
-        raise HTTPException(status_code=404, detail="No videos found to delete")
-
+    if len(request.video_ids) == 0:
+        raise HTTPException(status_code=400, detail="No videos found to delete")
+    deleted = delete_videos_by_ids(session, request.video_ids)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="One or more videos not found")
     return Response(status_code=204)
 
 
