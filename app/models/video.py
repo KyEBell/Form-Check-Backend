@@ -1,6 +1,9 @@
-from sqlmodel import SQLModel, Field
-from typing import Optional
+from sqlmodel import SQLModel, Field, Relationship
+from typing import Optional, TYPE_CHECKING
 from datetime import datetime, timezone
+
+if TYPE_CHECKING:
+    from app.models.tag import Tag
 
 
 class Video(SQLModel, table=True):
@@ -11,3 +14,4 @@ class Video(SQLModel, table=True):
     updated_on: Optional[datetime] = None
     uploaded_on: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     tag_id: Optional[int] = Field(default=None, foreign_key="tag.id")
+    tag: Optional["Tag"] = Relationship(back_populates="videos")

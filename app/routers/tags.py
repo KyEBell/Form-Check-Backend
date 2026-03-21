@@ -1,7 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
-from pydantic import BaseModel
 from app.database import get_session
 from sqlmodel import Session
+from app.schemas.tag import (
+    TagRead,
+    CreateTagRequest,
+    UpdateTagRequest,
+    DeleteTagRequest,
+)
 from app.services.tag_service import (
     get_all_tags,
     create_custom_tag,
@@ -12,30 +17,24 @@ from app.services.tag_service import (
 router = APIRouter(prefix="/tags", tags=["tags"])
 
 
-class CreateTagRequest(BaseModel):
-    name: str
-
-
-class DeleteTagRequest(BaseModel):
-    tag_ids: list[int]
-
-
 # GET
-@router.get("/")
+@router.get("/", response_model=list[TagRead])
 def get_tags(session: Session = Depends(get_session)):
     return get_all_tags(session)
 
 
 # POST
-@router.post("/")
+@router.post("/", response_model=TagRead)
 def create_tag(request: CreateTagRequest, session: Session = Depends(get_session)):
     return create_custom_tag(session, request.name)
 
 
 # PATCH
-@router.patch("/{tag_id}")
-def update_tag(tag_id: int, new_name: str, session: Session = Depends(get_session)):
-    updated_tag = update_tag_name(session, tag_id, new_name)
+@router.patch("/{tag_id}", response_model=TagRead)
+def update_tag(
+    tag_id: int, request: UpdateTagRequest, session: Session = Depends(get_session)
+):
+    updated_tag = update_tag_name(session, tag_id, request.name)
     if not updated_tag:
         raise HTTPException(status_code=404, detail="Tag not found")
     return updated_tag

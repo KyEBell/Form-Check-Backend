@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Form, Response
-from pydantic import BaseModel
 from sqlmodel import Session
 from app.database import get_session
+from app.schemas.video import VideoRead, DeleteVideoRequest, UpdateVideoRequest
 from app.services.video_service import (
     create_video,
     get_all_videos,
@@ -14,25 +14,13 @@ from app.services.video_service import (
 router = APIRouter(prefix="/videos", tags=["videos"])
 
 
-class DeleteVideoRequest(BaseModel):
-    video_ids: list[int]
-
-
-class UpdateVideoRequest(BaseModel):
-    title: str | None = None
-    note: str | None = None
-    tag_id: int | None = None
-    recorded_on: str | None = None
-    remove_tag: bool = False
-
-
 # GET
-@router.get("/")
+@router.get("/", response_model=list[VideoRead])
 def get_videos(session: Session = Depends(get_session)):
     return get_all_videos(session)
 
 
-@router.get("/{video_id}")
+@router.get("/{video_id}", response_model=VideoRead)
 def get_video(video_id: int, session: Session = Depends(get_session)):
     video = get_video_by_id(session, video_id)
     if not video:
@@ -41,7 +29,7 @@ def get_video(video_id: int, session: Session = Depends(get_session)):
 
 
 # POST
-@router.post("/")
+@router.post("/", response_model=VideoRead)
 def upload_video(
     video_file: UploadFile = File(...),
     title: str = Form(...),
@@ -58,7 +46,7 @@ def upload_video(
 
 
 # PATCH
-@router.patch("/{video_id}")
+@router.patch("/{video_id}", response_model=VideoRead)
 def patch_video(
     video_id: int,
     request: UpdateVideoRequest,

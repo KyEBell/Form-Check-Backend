@@ -1,4 +1,5 @@
 from sqlmodel import Session, select
+from sqlalchemy.orm import selectinload
 from app.models.video import Video
 from datetime import datetime, timezone
 from app.models.tag import Tag
@@ -7,11 +8,13 @@ UNSET = object()
 
 
 def get_all_videos(session: Session):
-    return session.exec(select(Video)).all()
+    return session.exec(select(Video).options(selectinload(Video.tag))).all()
 
 
 def get_video_by_id(session: Session, video_id: int):
-    return session.get(Video, video_id)
+    return session.exec(
+        select(Video).where(Video.id == video_id).options(selectinload(Video.tag))
+    ).first()
 
 
 def create_video(
@@ -29,7 +32,9 @@ def create_video(
     session.add(new_video)
     session.commit()
     session.refresh(new_video)
-    return new_video
+    return session.exec(
+        select(Video).where(Video.id == new_video.id).options(selectinload(Video.tag))
+    ).first()
 
 
 def update_video(
@@ -58,7 +63,9 @@ def update_video(
     video.updated_on = datetime.now(timezone.utc)
     session.commit()
     session.refresh(video)
-    return video
+    return session.exec(
+        select(Video).where(Video.id == video_id).options(selectinload(Video.tag))
+    ).first()
 
 
 def delete_videos_by_ids(session: Session, video_ids: list[int]):
