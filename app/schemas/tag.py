@@ -1,12 +1,10 @@
 from sqlmodel import SQLModel
-from datetime import datetime
+from app.schemas.base import TimestampReadMixin
 
 
-class TagRead(SQLModel):
+class TagRead(TimestampReadMixin):
     id: int
     name: str
-    created_on: datetime
-    updated_on: datetime | None = None
 
 
 class CreateTagRequest(SQLModel):

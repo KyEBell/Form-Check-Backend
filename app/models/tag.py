@@ -1,14 +1,12 @@
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import Field, Relationship
 from typing import Optional, TYPE_CHECKING
-from datetime import datetime, timezone
+from app.models.base import TimestampMixin
 
 if TYPE_CHECKING:
     from app.models.video import Video
 
 
-class Tag(SQLModel, table=True):
+class Tag(TimestampMixin, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(max_length=50)
-    created_on: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_on: Optional[datetime] = None
     videos: list["Video"] = Relationship(back_populates="tag")

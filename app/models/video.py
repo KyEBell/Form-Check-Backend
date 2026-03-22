@@ -1,17 +1,18 @@
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import Field, Relationship
 from typing import Optional, TYPE_CHECKING
 from datetime import datetime, timezone
+from app.models.base import TimestampMixin
+import uuid
 
 if TYPE_CHECKING:
     from app.models.tag import Tag
 
 
-class Video(SQLModel, table=True):
+class Video(TimestampMixin, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id")
     title: str
     note: Optional[str] = None
     recorded_on: Optional[str] = None
-    updated_on: Optional[datetime] = None
-    uploaded_on: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     tag_id: Optional[int] = Field(default=None, foreign_key="tag.id")
     tag: Optional["Tag"] = Relationship(back_populates="videos")

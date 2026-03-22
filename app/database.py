@@ -3,7 +3,8 @@ from dotenv import load_dotenv
 from sqlmodel import SQLModel, Session, create_engine
 from app.models.video import Video
 from app.models.tag import Tag
-
+from app.models.user import User
+from app.models.user_stats import UserStats
 
 load_dotenv()
 

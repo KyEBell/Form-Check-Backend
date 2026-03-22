@@ -1,15 +1,13 @@
 from sqlmodel import SQLModel
-from datetime import datetime
 from app.schemas.tag import TagRead
+from app.schemas.base import TimestampReadMixin
 
 
-class VideoRead(SQLModel):
+class VideoRead(TimestampReadMixin):
     id: int
     title: str
     note: str | None = None
     recorded_on: str | None = None
-    updated_on: datetime | None = None
-    uploaded_on: datetime
     tag: TagRead | None = None
 
 

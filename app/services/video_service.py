@@ -1,3 +1,5 @@
+import uuid
+
 from sqlmodel import Session, select
 from sqlalchemy.orm import selectinload
 from app.models.video import Video
@@ -28,7 +30,12 @@ def create_video(
         tag = session.get(Tag, tag_id)
         if not tag:
             raise ValueError("Tag not found")
-    new_video = Video(title=title, note=note, recorded_on=recorded_on, tag_id=tag_id)
+    new_video = Video(
+        title=title,
+        note=note,
+        recorded_on=recorded_on,
+        tag_id=tag_id,
+    )
     session.add(new_video)
     session.commit()
     session.refresh(new_video)
