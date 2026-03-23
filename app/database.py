@@ -8,7 +8,12 @@ from app.models.user_stats import UserStats
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+
+if ENVIRONMENT == "production":
+    DATABASE_URL = os.getenv("SUPABASE_DATABASE_URL")
+else:
+    DATABASE_URL = os.getenv("DATABASE_URL")
 
 engine = create_engine(DATABASE_URL)
 
