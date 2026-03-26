@@ -9,8 +9,10 @@ from app.models.tag import Tag
 UNSET = object()
 
 
-def get_all_videos(session: Session):
-    return session.exec(select(Video).options(selectinload(Video.tag))).all()
+def get_all_videos(session: Session, user_id: uuid.UUID):
+    return session.exec(
+        select(Video).where(Video.user_id == user_id).options(selectinload(Video.tag))
+    ).all()
 
 
 def get_video_by_id(session: Session, video_id: int):

@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Form, R
 from sqlmodel import Session
 from app.database import get_session
 from app.schemas.video import VideoRead, DeleteVideoRequest, UpdateVideoRequest
+from app.auth import get_current_user
+from app.models.user import User
 from app.services.video_service import (
     create_video,
     get_all_videos,
@@ -16,8 +18,11 @@ router = APIRouter(prefix="/videos", tags=["videos"])
 
 # GET
 @router.get("/", response_model=list[VideoRead])
-def get_videos(session: Session = Depends(get_session)):
-    return get_all_videos(session)
+def get_videos(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    return get_all_videos(session, current_user.id)
 
 
 @router.get("/{video_id}", response_model=VideoRead)
