@@ -26,8 +26,12 @@ def get_videos(
 
 
 @router.get("/{video_id}", response_model=VideoRead)
-def get_video(video_id: int, session: Session = Depends(get_session)):
-    video = get_video_by_id(session, video_id)
+def get_video(
+    video_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    video = get_video_by_id(session, video_id, current_user.id)
     if not video:
         raise HTTPException(status_code=404, detail="Video not found")
     return video
@@ -42,9 +46,10 @@ def upload_video(
     recorded_on: str | None = Form(None),
     tag_id: int | None = Form(None),
     session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
 ):
     try:
-        video = create_video(session, title, note, recorded_on, tag_id)
+        video = create_video(session, title, note, recorded_on, tag_id, current_user.id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return video
@@ -56,6 +61,7 @@ def patch_video(
     video_id: int,
     request: UpdateVideoRequest,
     session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
 ):
     if request.remove_tag:
         tag_id = None
@@ -67,6 +73,7 @@ def patch_video(
         updated_video = update_video(
             session,
             video_id,
+            current_user.id,
             request.title,
             request.note,
             tag_id,
@@ -81,10 +88,14 @@ def patch_video(
 
 # DELETE
 @router.delete("/")
-def delete_videos(request: DeleteVideoRequest, session: Session = Depends(get_session)):
+def delete_videos(
+    request: DeleteVideoRequest,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
     if len(request.video_ids) == 0:
         raise HTTPException(status_code=400, detail="No videos found to delete")
-    deleted = delete_videos_by_ids(session, request.video_ids)
+    deleted = delete_videos_by_ids(session, request.video_ids, current_user.id)
     if not deleted:
         raise HTTPException(status_code=404, detail="One or more videos not found")
     return Response(status_code=204)
