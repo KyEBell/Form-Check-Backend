@@ -2,7 +2,7 @@ from app.models.base import TimestampMixin
 from sqlmodel import Field
 from typing import Optional
 import uuid
-from app.models.enums import UnitEnum
+from app.models.enums import UnitEnum, GenderEnum
 
 
 class UserStats(TimestampMixin, table=True):
@@ -11,6 +11,7 @@ class UserStats(TimestampMixin, table=True):
     height: Optional[int] = None
     weight: Optional[float] = None
     unit: UnitEnum = Field(default=UnitEnum.imperial)
+    gender: GenderEnum = Field(default=GenderEnum.prefer_not_to_say)
     years_lifting: Optional[int] = None
     squat_1rm: Optional[int] = None
     bench_press_1rm: Optional[int] = None
