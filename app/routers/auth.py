@@ -23,7 +23,9 @@ def login(request: LoginRequest):
 @router.post("/signup", response_model=LoginResponse)
 def signup(request: SignupRequest, session: Session = Depends(get_session)):
     try:
-        data = signup_user(session, request.email, request.password, request.username)
+        data = signup_user(
+            session, request.email, request.password, request.username, request.unit
+        )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {

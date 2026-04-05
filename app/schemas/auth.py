@@ -1,4 +1,5 @@
 from sqlmodel import SQLModel
+from app.models.enums import UnitEnum
 
 
 class LoginRequest(SQLModel):
@@ -10,6 +11,7 @@ class SignupRequest(SQLModel):
     email: str
     username: str
     password: str
+    unit: UnitEnum
 
 
 class LoginResponse(SQLModel):
