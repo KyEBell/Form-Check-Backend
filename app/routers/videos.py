@@ -21,8 +21,9 @@ router = APIRouter(prefix="/videos", tags=["videos"])
 def get_videos(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    tag_id: int | None = None,
 ):
-    return get_all_videos(session, current_user.id)
+    return get_all_videos(session, current_user.id, tag_id)
 
 
 @router.get("/{video_id}", response_model=VideoRead)

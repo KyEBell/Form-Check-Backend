@@ -1,6 +1,6 @@
 import uuid
 
-from sqlmodel import Session, select
+from sqlmodel import Session, select, col
 from sqlalchemy.orm import selectinload
 from app.models.video import Video
 from datetime import datetime, timezone
@@ -9,17 +9,18 @@ from app.models.tag import Tag
 UNSET = object()
 
 
-def get_all_videos(session: Session, user_id: uuid.UUID):
-    return session.exec(
-        select(Video).where(Video.user_id == user_id).options(selectinload(Video.tag))
-    ).all()
+def get_all_videos(session: Session, user_id: uuid.UUID, tag_id: int | None = None):
+    query = select(Video).where(Video.user_id == user_id).options(selectinload(Video.tag))  # type: ignore
+    if tag_id is not None:
+        query = query.where(Video.tag_id == tag_id)
+    return session.exec(query).all()
 
 
 def get_video_by_id(session: Session, video_id: int, user_id: uuid.UUID):
     return session.exec(
         select(Video)
         .where(Video.id == video_id, Video.user_id == user_id)
-        .options(selectinload(Video.tag))
+        .options(selectinload(Video.tag))  # type: ignore
     ).first()
 
 
@@ -48,7 +49,7 @@ def create_video(
     return session.exec(
         select(Video)
         .where(Video.id == new_video.id, Video.user_id == user_id)
-        .options(selectinload(Video.tag))
+        .options(selectinload(Video.tag))  # type: ignore
     ).first()
 
 
@@ -77,20 +78,20 @@ def update_video(
             tag = session.get(Tag, tag_id)
             if not tag:
                 raise ValueError("Tag not found")
-        video.tag_id = tag_id
+        video.tag_id = tag_id  # type: ignore
     video.updated_on = datetime.now(timezone.utc)
     session.commit()
     session.refresh(video)
     return session.exec(
         select(Video)
         .where(Video.id == video_id, Video.user_id == user_id)
-        .options(selectinload(Video.tag))
+        .options(selectinload(Video.tag))  # type: ignore
     ).first()
 
 
 def delete_videos_by_ids(session: Session, video_ids: list[int], user_id: uuid.UUID):
     videos = session.exec(
-        select(Video).where(Video.id.in_(video_ids), Video.user_id == user_id)
+        select(Video).where(col(Video.id).in_(video_ids), Video.user_id == user_id)
     ).all()
     if len(videos) != len(video_ids):
         return False

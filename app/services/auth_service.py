@@ -6,24 +6,28 @@ from sqlmodel import Session
 from app.models.user import User
 from app.models.enums import UnitEnum
 from app.models.user_stats import UserStats
+from typing import Any
 
 load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
 
+if not SUPABASE_URL or not SUPABASE_ANON_KEY:
+    raise ValueError("SUPABASE_URL and SUPABASE_ANON_KEY must be set")
 
-def login_user(email: str, password: str) -> dict:
+
+def login_user(email: str, password: str) -> dict[str, Any]:
     url = f"{SUPABASE_URL}/auth/v1/token?grant_type=password"
-    headers = {
+    headers: dict[str, str] = {
         "Content-Type": "application/json",
-        "apikey": SUPABASE_ANON_KEY,
+        "apikey": SUPABASE_ANON_KEY or "",
     }
-    json = {
+    json_data = {
         "email": email,
         "password": password,
     }
-    response = httpx.post(url, json=json, headers=headers)
+    response = httpx.post(url, json=json_data, headers=headers)
 
     if response.status_code != 200:
         error_data = response.json()
@@ -34,17 +38,17 @@ def login_user(email: str, password: str) -> dict:
 
 def signup_user(
     session: Session, email: str, password: str, username: str, unit: UnitEnum
-) -> dict:
+) -> dict[str, Any]:
     url = f"{SUPABASE_URL}/auth/v1/signup"
-    headers = {
+    headers: dict[str, str] = {
         "Content-Type": "application/json",
-        "apikey": SUPABASE_ANON_KEY,
+        "apikey": SUPABASE_ANON_KEY or "",
     }
-    json = {
+    json_data = {
         "email": email,
         "password": password,
     }
-    response = httpx.post(url, json=json, headers=headers)
+    response = httpx.post(url, json=json_data, headers=headers)
 
     if response.status_code != 200:
         error_data = response.json()

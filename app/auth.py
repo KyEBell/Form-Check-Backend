@@ -6,7 +6,7 @@ from sqlmodel import Session
 from app.models.user import User
 import uuid
 
-SUPABASE_JWT_PUBLIC_KEY = {
+SUPABASE_JWT_PUBLIC_KEY: dict[str, str | bool | list[str]] = {
     "x": "IY81RMTdBpZwWkto4inAxPzy4-MhgpP8iaapHK2RS2Q",
     "y": "ia-qUg6oHN57f_RFsL9tjhExiSxvJxVNJw6Gk2GjxN0",
     "alg": "ES256",
