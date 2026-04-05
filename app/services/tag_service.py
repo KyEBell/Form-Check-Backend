@@ -1,4 +1,4 @@
-from sqlmodel import Session, select
+from sqlmodel import Session, select, col
 from app.models.tag import Tag
 from datetime import datetime, timezone
 import uuid
@@ -34,7 +34,7 @@ def update_tag_name(session: Session, tag_id: int, new_name: str, user_id: uuid.
 
 
 def delete_custom_tags(session: Session, tag_ids: list[int], user_id: uuid.UUID):
-    tags = session.exec(select(Tag).where(Tag.id.in_(tag_ids))).all()
+    tags = session.exec(select(Tag).where(col(Tag.id).in_(tag_ids))).all()
     if len(tags) != len(tag_ids):
         return False
     for tag in tags:

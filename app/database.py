@@ -1,21 +1,24 @@
 import os
 from dotenv import load_dotenv
 from sqlmodel import SQLModel, Session, create_engine, select
-from app.models.video import Video
 from app.models.tag import Tag
-from app.models.user import User
-from app.models.user_stats import UserStats
+from app.models.video import Video  # type: ignore
+from app.models.user import User  # type: ignore
+from app.models.user_stats import UserStats  # type: ignore
 
 load_dotenv()
 
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
 if ENVIRONMENT == "production":
-    DATABASE_URL = os.getenv("SUPABASE_DATABASE_URL")
+    database_url = os.getenv("SUPABASE_DATABASE_URL")
 else:
-    DATABASE_URL = os.getenv("DATABASE_URL")
+    database_url = os.getenv("DATABASE_URL")
 
-engine = create_engine(DATABASE_URL)
+if not database_url:
+    raise ValueError("DATABASE_URL environment variable is not set")
+
+engine = create_engine(database_url)
 
 
 def create_db_and_tables():
