@@ -27,44 +27,54 @@ def calculate_age(dob: date) -> int:
 
 def format_stats_line(stats: UserStats) -> str:
     unit = stats.unit if stats.unit else UnitEnum.imperial
+    parts = []
 
-    gender = gender_display.get(stats.gender, "?") if stats.gender else "?"
-
-    age = str(calculate_age(stats.date_of_birth)) if stats.date_of_birth else "?"
+    if stats.date_of_birth and stats.gender:
+        age = str(calculate_age(stats.date_of_birth))
+        gender = gender_display.get(stats.gender, "")
+        parts.append(f"{age}{gender}")
+    elif stats.date_of_birth:
+        parts.append(str(calculate_age(stats.date_of_birth)))
+    elif stats.gender and stats.gender != GenderEnum.prefer_not_to_say:
+        parts.append(gender_display.get(stats.gender, ""))
 
     if stats.weight is not None:
         weight_val = (
             int(stats.weight) if stats.weight == int(stats.weight) else stats.weight
         )
-        weight = f"{weight_val} {'lbs' if unit == UnitEnum.imperial else 'kg'}"
-    else:
-        weight = "?"
+        parts.append(f"{weight_val} {'lbs' if unit == UnitEnum.imperial else 'kg'}")
 
-    if stats.height:
+    if stats.height is not None:
         if unit == UnitEnum.imperial:
             feet = stats.height // 12
             inches = stats.height % 12
-            height = f"{feet}'{inches}\""
+            parts.append(f"{feet}'{inches}\"")
         else:
-            height = f"{stats.height} cm"
-    else:
-        height = "?"
+            parts.append(f"{stats.height} cm")
 
-    years = f"{stats.years_lifting} years of lifting" if stats.years_lifting else "?"
+    if stats.years_lifting:
+        parts.append(f"{stats.years_lifting} years of lifting")
 
-    return f"{age}{gender} | {weight} | {height} | {years}"
+    return " | ".join(parts)
 
 
 def generate_draft(video: Video, stats: UserStats) -> str:
     stats_line = format_stats_line(stats)
+
     lift = video.tag.name if video.tag else "Unknown lift"
+
+    if stats_line:
+        stats_prompt = f"Stats line (include exactly as shown, do not add or change anything): {stats_line}\n"
+    else:
+        stats_prompt = (
+            "No user stats available. Do NOT include or invent any stats line.\n"
+        )
 
     prompt = f"""You are helping a user write a post for r/formcheck on Reddit.
 
     Generate ONLY the Reddit post text — no meta-commentary, no instructions, no notes. Ready to paste directly into Reddit.
 
-    Stats line (include exactly as shown): {stats_line}
-    Lift: {lift}
+    {stats_prompt}Lift: {lift}
     User concern: {video.note or 'No Notes Provided'}
 
     Format:

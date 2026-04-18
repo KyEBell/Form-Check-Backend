@@ -25,6 +25,7 @@ def get_video_by_id(session: Session, video_id: int, user_id: uuid.UUID):
 
 def create_video(
     session: Session,
+    asset_identifier: str | None,
     title: str,
     note: str | None,
     recorded_on: str | None,
@@ -37,6 +38,7 @@ def create_video(
             raise ValueError("Tag not found")
     new_video = Video(
         title=title,
+        asset_identifier=asset_identifier,
         note=note,
         recorded_on=recorded_on,
         tag_id=tag_id,

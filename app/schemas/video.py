@@ -5,6 +5,7 @@ from app.schemas.base import TimestampReadMixin
 
 class VideoRead(TimestampReadMixin):
     id: int
+    asset_identifier: str | None = None
     title: str
     note: str | None = None
     recorded_on: str | None = None
