@@ -1,7 +1,13 @@
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Form, Response
 from sqlmodel import Session
 from app.database import get_session
-from app.schemas.video import VideoRead, DeleteVideoRequest, UpdateVideoRequest
+from app.schemas.video import (
+    VideoRead,
+    DeleteVideoRequest,
+    UpdateVideoRequest,
+    GenerateDraftRequest,
+    DraftResponse,
+)
 from app.auth import get_current_user
 from app.models.user import User
 from app.services.video_service import (
@@ -10,8 +16,11 @@ from app.services.video_service import (
     get_video_by_id,
     update_video,
     delete_videos_by_ids,
+    save_draft,
     UNSET,
 )
+from app.services.user_stats_service import get_user_stats
+from app.services.draft_service import generate_draft
 
 router = APIRouter(prefix="/videos", tags=["videos"])
 
@@ -54,6 +63,25 @@ def upload_video(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return video
+
+
+@router.post("/{video_id}/draft", response_model=DraftResponse)
+def make_draft(
+    video_id: int,
+    request: GenerateDraftRequest,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    video = get_video_by_id(session, video_id, current_user.id)
+    if not video:
+        raise HTTPException(status_code=404, detail="Video not found")
+    user_stats = get_user_stats(session, current_user.id)
+    try:
+        draft = generate_draft(video, user_stats, request.user_prompt)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    save_draft(session, video_id, current_user.id, draft)
+    return DraftResponse(draft_response=draft)
 
 
 # PATCH
