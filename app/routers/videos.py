@@ -46,6 +46,20 @@ def get_video(
     return video
 
 
+@router.get("/{video_id}/draft", response_model=DraftResponse)
+def get_draft(
+    video_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    video = get_video_by_id(session, video_id, current_user.id)
+    if not video:
+        raise HTTPException(status_code=404, detail="Video not found")
+    if not video.draft:
+        raise HTTPException(status_code=404, detail="No draft found for this video")
+    return DraftResponse(draft_response=video.draft)
+
+
 # POST
 @router.post("/", response_model=VideoRead)
 def upload_video(
