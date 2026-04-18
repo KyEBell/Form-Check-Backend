@@ -32,11 +32,13 @@ def format_stats_line(stats: UserStats) -> str:
 
     age = str(calculate_age(stats.date_of_birth)) if stats.date_of_birth else "?"
 
-    weight = (
-        f"{stats.weight}{' lbs' if unit == UnitEnum.imperial else ' kg'}"
-        if stats.weight
-        else "?"
-    )
+    if stats.weight is not None:
+        weight_val = (
+            int(stats.weight) if stats.weight == int(stats.weight) else stats.weight
+        )
+        weight = f"{weight_val} {'lbs' if unit == UnitEnum.imperial else 'kg'}"
+    else:
+        weight = "?"
 
     if stats.height:
         if unit == UnitEnum.imperial:
@@ -47,7 +49,8 @@ def format_stats_line(stats: UserStats) -> str:
             height = f"{stats.height} cm"
     else:
         height = "?"
-    years = f"{stats.years_lifting} years" if stats.years_lifting else "?"
+
+    years = f"{stats.years_lifting} years of lifting" if stats.years_lifting else "?"
 
     return f"{age}{gender} | {weight} | {height} | {years}"
 
@@ -55,13 +58,21 @@ def format_stats_line(stats: UserStats) -> str:
 def generate_draft(video: Video, stats: UserStats, user_prompt: str) -> str:
     stats_line = format_stats_line(stats)
     lift = video.tag.name if video.tag else "Unknown lift"
-    prompt = f"""You are helping a user write a post for r/formcheck on Reddit. If the lift is unknown, attempt to infer from the video title or user_prompt variable.
-    User stats: {stats_line}
+
+    prompt = f"""You are helping a user write a post for r/formcheck on Reddit.
+
+    Generate ONLY the Reddit post text — no meta-commentary, no instructions, no notes. Ready to paste directly into Reddit.
+
+    Stats line (include exactly as shown): {stats_line}
     Lift: {lift}
-    Video title: {video.title}
-    User notes: {video.note or 'None'}
     User concern: {user_prompt}
-    Write a concise r/formcheck post including the stats line, lift info, and their specific question. Keep it under 200 words."""
+
+    Format:
+        - Line 1: Stats line exactly as provided
+        - Line 2: One concise sentence describing what they want checked
+        - Line 3: One specific question for the community
+
+    Keep it under 75 words. Do not mention the video title. Do not repeat the concern twice. Be direct and casual."""
 
     message = client.messages.create(
         model="claude-sonnet-4-6",
