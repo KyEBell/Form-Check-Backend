@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Form, Response
+from fastapi import APIRouter, Depends, HTTPException, Form, Response
 from sqlmodel import Session
 from app.database import get_session
 from app.schemas.video import (
@@ -63,7 +63,7 @@ def get_draft(
 # POST
 @router.post("/", response_model=VideoRead)
 def upload_video(
-    video_file: UploadFile = File(...),
+    asset_identifier: str | None = Form(None),
     title: str = Form(...),
     note: str | None = Form(None),
     recorded_on: str | None = Form(None),
@@ -72,7 +72,9 @@ def upload_video(
     current_user: User = Depends(get_current_user),
 ):
     try:
-        video = create_video(session, title, note, recorded_on, tag_id, current_user.id)
+        video = create_video(
+            session, asset_identifier, title, note, recorded_on, tag_id, current_user.id
+        )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return video
