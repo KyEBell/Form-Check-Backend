@@ -1,5 +1,4 @@
 import uuid
-
 from sqlmodel import Session, select, col
 from sqlalchemy.orm import selectinload
 from app.models.video import Video
@@ -99,3 +98,16 @@ def delete_videos_by_ids(session: Session, video_ids: list[int], user_id: uuid.U
         session.delete(video)
     session.commit()
     return True
+
+
+def save_draft(
+    session: Session, video_id: int, user_id: uuid.UUID, draft: str
+) -> Video | None:
+    video = session.exec(
+        select(Video).where(Video.id == video_id, Video.user_id == user_id)
+    ).first()
+    if not video:
+        return None
+    video.draft = draft
+    session.commit()
+    return video

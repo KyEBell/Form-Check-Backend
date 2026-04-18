@@ -21,3 +21,7 @@ class UpdateVideoRequest(SQLModel):
     tag_id: int | None = None
     recorded_on: str | None = None
     remove_tag: bool = False
+
+
+class DraftResponse(SQLModel):
+    draft_response: str

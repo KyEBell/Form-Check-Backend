@@ -1,6 +1,5 @@
 from sqlmodel import Field, Relationship
 from typing import Optional, TYPE_CHECKING
-from datetime import datetime, timezone
 from app.models.base import TimestampMixin
 import uuid
 
@@ -16,3 +15,4 @@ class Video(TimestampMixin, table=True):
     recorded_on: Optional[str] = None
     tag_id: Optional[int] = Field(default=None, foreign_key="tag.id")
     tag: Optional["Tag"] = Relationship(back_populates="videos")
+    draft: Optional[str] = None
