@@ -5,7 +5,6 @@ from app.schemas.video import (
     VideoRead,
     DeleteVideoRequest,
     UpdateVideoRequest,
-    GenerateDraftRequest,
     DraftResponse,
 )
 from app.auth import get_current_user
@@ -68,16 +67,20 @@ def upload_video(
 @router.post("/{video_id}/draft", response_model=DraftResponse)
 def make_draft(
     video_id: int,
-    request: GenerateDraftRequest,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
     video = get_video_by_id(session, video_id, current_user.id)
     if not video:
         raise HTTPException(status_code=404, detail="Video not found")
+    if not video.note or not video.note.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Please add notes to your video before generating a draft",
+        )
     user_stats = get_user_stats(session, current_user.id)
     try:
-        draft = generate_draft(video, user_stats, request.user_prompt)
+        draft = generate_draft(video, user_stats)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     save_draft(session, video_id, current_user.id, draft)

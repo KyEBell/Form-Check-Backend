@@ -55,7 +55,7 @@ def format_stats_line(stats: UserStats) -> str:
     return f"{age}{gender} | {weight} | {height} | {years}"
 
 
-def generate_draft(video: Video, stats: UserStats, user_prompt: str) -> str:
+def generate_draft(video: Video, stats: UserStats) -> str:
     stats_line = format_stats_line(stats)
     lift = video.tag.name if video.tag else "Unknown lift"
 
@@ -65,14 +65,14 @@ def generate_draft(video: Video, stats: UserStats, user_prompt: str) -> str:
 
     Stats line (include exactly as shown): {stats_line}
     Lift: {lift}
-    User concern: {user_prompt}
+    User concern: {video.note or 'No Notes Provided'}
 
     Format:
         - Line 1: Stats line exactly as provided
         - Line 2: One concise sentence describing what they want checked
-        - Line 3: One specific question for the community
+        - Line 3: One clear, straightforward question for the community
 
-    Keep it under 75 words. Do not mention the video title. Do not repeat the concern twice. Be direct and casual."""
+    Keep it under 75 words. Do not mention the video title. Do not repeat the concern twice. Be direct and simple. Avoid humor, slang or casual quips"""
 
     message = client.messages.create(
         model="claude-sonnet-4-6",
